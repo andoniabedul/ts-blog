@@ -1,18 +1,18 @@
 import { Request, Response, Router } from 'express';
+import PostModel from '../models/post.models';
 
 
-class Posts {
+class Post {
     public router: Router;
-    private RESOURCE: string;
     
     constructor(){
         this.router = Router();
-        this.RESOURCE = 'posts'; 
         this.setRoutes();
     }
     
-    getList(req: Request, res: Response){
-        res.send(`[POSTS][getList] SUCCESS`);
+    async getList(req: Request, res: Response){
+        const posts = await PostModel.getPosts();
+        res.send({ success: true, data: { posts } });
     }
     get(req: Request, res: Response){
         const id: string = req.params.id;
@@ -30,13 +30,13 @@ class Posts {
     }
 
     setRoutes(){
-        this.router.get(`/${this.RESOURCE}/`, this.getList);
-        this.router.post(`/${this.RESOURCE}/create/`, this.create);
-        this.router.get(`/${this.RESOURCE}/:id/`, this.get);
-        this.router.delete(`/${this.RESOURCE}/:id/delete/`, this.delete);
-        this.router.post(`/${this.RESOURCE}/:id/update`);
+        this.router.get(`/`, this.getList);
+        this.router.post(`/create/`, this.create);
+        this.router.get(`/:id/`, this.get);
+        this.router.delete(`/:id/delete/`, this.delete);
+        this.router.put(`/:id/update`, this.update);
     }
 }
 
-const PostsRouter = new Posts();
-export default PostsRouter.router;
+const PostRouter = new Post();
+export default PostRouter.router;

@@ -8,18 +8,20 @@ import cors from 'cors';
 
 ////////////////// ROUTES //////////////////
 import IndexRoutes from './routes/index.routes';
-import PostsRoutes from './routes/posts.routes';
+import PostsRoutes from './routes/post.routes';
 
 class Server {
   public app: express.Application;
   private VERSION: string;
+  private PORT:number;
   constructor(){
     this.app = express();
+    this.PORT = 9000;
     this.VERSION = 'v1';
     this.setConfig();
   }
   private setConfig(){
-    this.app.set('port', process.env.PORT || 9000);
+    this.app.set('port', this.PORT);
     this.setDB();
     this.setMiddlewares();
     this.setRoutes(this.VERSION);
@@ -29,9 +31,9 @@ class Server {
     const MONGO_OPTIONS =  {
       useNewUrlParser: true,
       useCreateIndex: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      useFindAndModify: true
     };
-    mongoose.set('useFindAndModify', true);
     mongoose.connect(MONGO_URI, MONGO_OPTIONS).then( db => console.log(`DB ON ${MONGO_URI} IS CONNECTED`))
   }
   private setMiddlewares(){
@@ -42,14 +44,15 @@ class Server {
     this.app.use(cors());
     this.app.use(helmet());
   }
-  private setRoutes(API_VERSION:string){
-    const getApiResource = (prefix: string, version: string) => `/${prefix}/${version}`;
-    this.app.use(IndexRoutes);
-    this.app.use(getApiResource('api', API_VERSION), PostsRoutes);
+  private getApiResource(prefix: string, version: string, resource: string){
+    return `/${prefix}/${version}/${resource}`;
   }
-  start(){
-    const PORT = this.app.get('PORT');
-    this.app.listen(PORT, () =>  console.log(`Server on port ${PORT}`));
+  private setRoutes(API_VERSION:string){
+    this.app.use(IndexRoutes);
+    this.app.use(this.getApiResource('api', this.VERSION, 'posts'), PostsRoutes);
+  }
+  public start(){
+    this.app.listen(this.PORT, () =>  console.log(`Server on port ${this.PORT}`));
   }
 }
 
